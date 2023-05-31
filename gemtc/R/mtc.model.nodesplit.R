@@ -52,7 +52,7 @@ mtc.model.nodesplit <- function(model, t1, t2) {
 
   model[['code']] <- mtc.model.code(model, mtc.basic.parameters(model), nodesplit.relative.effect.matrix(model, tree.indirect))
 
-  monitors <- c(inits.to.monitors(model[['inits']][[1]]), 'd.direct', 'd.indirect')
+  monitors <- c(inits.to.monitors(model[['inits']][[1]]), 'd.direct', 'd.indirect', 'd.inconsistency.factor')
   model[['monitors']] <- list(
     available=monitors,
     enabled=c(monitors[grep('^d\\.', monitors)], monitors[grep('^sd.d$', monitors)])
@@ -92,5 +92,6 @@ nodesplit.relative.effect.matrix <- function(model, tree) {
   expr <- c('d1[1] <- 0', expr, 'for (i in 1:nt) {\n\tfor (j in 1:nt) {\n\t\tis.split[i, j] <- equals(i, split[1]) * equals(j, split[2]) + equals(i, split[2]) * equals(j, split[1])\n\t\td[i, j] <- (1 - is.split[i, j]) * (d1[j] - d1[i]) + is.split[i, j] * (2 * equals(i, split[1]) - 1) * d.direct\n\t}\n}')
   expr <- c(expr, paste('d.direct <- d', model[['split']][1], model[['split']][2], sep='.'))
   expr <- c(expr, 'd.indirect <- d1[split[2]] - d1[split[1]]')
+  expr <- c(expr, 'd.inconsistency.factor <- d.direct - d.indirect')
   paste(expr, collapse="\n")
 }
